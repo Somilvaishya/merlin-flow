@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Merlin — Business Workflow Flowchart</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,700;0,900;1,300&display=swap" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: #f5f0e8;
+  min-height: 100vh;
+  font-family: 'DM Mono', monospace;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+.page-header {
+  background: #1a1612;
+  padding: 36px 48px 32px;
+  display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  border-bottom: 3px solid #c8963e;
+}
+.brand {
+  font-family: 'Fraunces', serif;
+  font-size: 42px; font-weight: 900; color: #f0e6c8;
+  letter-spacing: -0.03em; line-height: 1;
+}
+.brand span { color: #c8963e; }
+.header-sub {
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: #7a6e5e; letter-spacing: 0.12em; text-transform: uppercase;
+  margin-top: 6px;
+}
+.legend {
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+}
+.leg-item {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 10px; color: #9a8e7e; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.leg-dot {
+  width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0;
+}
+
+/* ── CANVAS ── */
+.canvas {
+  padding: 48px 32px 80px;
+  position: relative;
+  min-width: 900px;
+}
+
+/* ── FLOW WRAPPER ── */
+.flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  position: relative;
+}
+
+/* ── NODE BASE ── */
+.node {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  cursor: default;
+  transition: transform 0.18s, box-shadow 0.18s;
+  animation: fadeUp 0.5s both;
+}
+.node:hover { transform: translateY(-2px); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── NODE TYPES ── */
+.node-start {
+  width: 200px; height: 52px; border-radius: 26px;
+  background: #1a1612; border: 2px solid #c8963e;
+  color: #f0e6c8; font-size: 13px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+.node-process {
+  width: 260px; min-height: 68px; border-radius: 6px;
+  border: 2px solid;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 12px 18px; gap: 4px;
+}
+.node-process .n-icon { font-size: 20px; line-height: 1; }
+.node-process .n-title {
+  font-family: 'Fraunces', serif; font-size: 14px; font-weight: 700; line-height: 1.2;
+}
+.node-process .n-sub {
+  font-size: 10px; opacity: 0.7; letter-spacing: 0.05em; line-height: 1.4;
+}
+
+.node-decision {
+  width: 220px; height: 80px;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11.5px; font-weight: 500; letter-spacing: 0.04em;
+  text-align: center; padding: 0 40px;
+}
+
+.node-store {
+  width: 240px; min-height: 60px; border-radius: 4px;
+  border: 2px dashed;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 16px;
+  font-size: 12px; font-weight: 500; letter-spacing: 0.04em;
+}
+.node-store .ns-icon { font-size: 18px; flex-shrink: 0; }
+
+.node-end {
+  width: 200px; height: 52px; border-radius: 26px;
+  background: #2d4a2d; border: 2px solid #5a9e5a;
+  color: #c8f0c8; font-size: 13px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+/* ── COLORS ── */
+.col-procurement { background: #fff8ee; border-color: #c8963e; color: #7a5010; }
+.col-subcon      { background: #f0eef8; border-color: #7b6bb8; color: #3d2f7a; }
+.col-qc          { background: #eef4f8; border-color: #4a90b8; color: #1e4d6e; }
+.col-warehouse   { background: #eef8f0; border-color: #4a9e5a; color: #1e4d2e; }
+.col-sales       { background: #f8f0ee; border-color: #c85a3e; color: #7a2010; }
+.col-return      { background: #f4eef8; border-color: #9e4ab8; color: #4d1e6e; }
+.col-custom      { background: #f8f4ee; border-color: #b87a3e; color: #6e3e10; }
+
+.dec-qc          { background: #4a90b8; color: #fff; }
+.dec-return      { background: #9e4ab8; color: #fff; }
+.dec-subcon      { background: #7b6bb8; color: #fff; }
+
+.store-main      { border-color: #4a9e5a; color: #1e4d2e; background: #eef8f0; }
+.store-bin       { border-color: #4a90b8; color: #1e4d6e; background: #eef4f8; }
+.store-rej       { border-color: #c85a3e; color: #7a2010; background: #f8f0ee; }
+.store-fix       { border-color: #b87a3e; color: #6e3e10; background: #f8f4ee; }
+
+/* ── CONNECTORS ── */
+.connector {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0;
+}
+.arrow-line {
+  width: 2px; background: #c4b89e;
+  flex-shrink: 0;
+}
+.arrow-head {
+  width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid #c4b89e;
+}
+
+/* ── BRANCHING LAYOUT ── */
+.branch-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  position: relative;
+  width: 100%;
+  justify-content: center;
+}
+
+.branch-col {
+  display: flex; flex-direction: column; align-items: center;
+  position: relative;
+}
+
+/* horizontal line spanning branches */
+.h-line {
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  height: 2px; background: #c4b89e;
+}
+
+.branch-label {
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #9a8e7e; padding: 2px 6px;
+  background: #f5f0e8; border: 1px solid #d4c8b4;
+  border-radius: 2px; white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+/* ── SECTION SEPARATORS ── */
+.flow-section {
+  display: flex; flex-direction: column; align-items: center; width: 100%;
+  position: relative;
+}
+.section-pill {
+  font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: #f5f0e8; padding: 3px 14px; border-radius: 10px;
+  margin-bottom: 16px; margin-top: 8px;
+  font-weight: 500;
+}
+
+/* ── WIDE BRANCH CONTAINER ── */
+.wide-branch {
+  width: 100%; max-width: 960px;
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.qc-outcomes {
+  display: flex; gap: 32px; align-items: flex-start; justify-content: center;
+  width: 100%; margin-top: 0;
+}
+.qc-outcome-col {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+
+.sales-channels {
+  display: flex; gap: 20px; align-items: flex-start; justify-content: center;
+  width: 100%;
+}
+.channel-col {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+
+/* ── SVG LINES ── */
+.flow-svg {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; overflow: visible;
+}
+
+/* ── ANIMATIONS ── */
+.node { animation-fill-mode: both; }
+.node:nth-child(1)  { animation-delay: 0.05s; }
+.node:nth-child(2)  { animation-delay: 0.10s; }
+.node:nth-child(3)  { animation-delay: 0.15s; }
+
+/* ── BOTTOM FOOTER ── */
+.page-footer {
+  background: #1a1612; color: #5a5048;
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 18px 48px; display: flex; justify-content: space-between;
+  border-top: 1px solid #2e2820;
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div>
+    <div class="brand">Merlin<span>.</span></div>
+    <div class="header-sub">Business Workflow Flowchart · Stainless Steel Vessel Bottles</div>
+  </div>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#c8963e"></div>Procurement</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#7b6bb8"></div>Subcontracting</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#4a90b8"></div>Quality Control</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#4a9e5a"></div>Warehouse</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#c85a3e"></div>Sales</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#9e4ab8"></div>Returns</div>
+  </div>
+</div>
+
+<div class="canvas">
+<div class="flow">
+
+  <!-- ══ START ══ -->
+  <div class="node node-start" style="animation-delay:0.05s">▶ &nbsp; Business Start</div>
+
+  <div class="connector"><div class="arrow-line" style="height:28px"></div><div class="arrow-head"></div></div>
+
+  <!-- ══ PROCUREMENT ══ -->
+  <div class="section-pill" style="background:#c8963e">01 · Raw Procurement</div>
+  <div class="node node-process col-procurement" style="animation-delay:0.10s">
+    <div class="n-icon">🪨</div>
+    <div class="n-title">Purchase Raw Steel Bottles</div>
+    <div class="n-sub">Purchase Order → Purchase Receipt<br/>Stock lands in Main Warehouse</div>
+  </div>
+
+  <div class="connector"><div class="arrow-line" style="height:28px"></div><div class="arrow-head"></div></div>
+
+  <!-- ══ SUBCONTRACTING ══ -->
+  <div class="section-pill" style="background:#7b6bb8">02 · Subcontracting</div>
+  <div class="node node-process col-subcon" style="animation-delay:0.15s">
+    <div class="n-icon">📦</div>
+    <div class="n-title">Send Raw Bottles to Vendor</div>
+    <div class="n-sub">Subcontracting Order · Stock Entry (Send)<br/>Main WH → Virtual Subcon Store</div>
+  </div>
+
+  <div class="connector"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node node-process col-subcon" style="animation-delay:0.20s; width:290px;">
+    <div class="n-icon">🏭</div>
+    <div class="n-title">Vendor Processing</div>
+    <div class="n-sub">Painting · Coating · Cap Fitting<br/>Rubber / Silicone Assembly</div>
+  </div>
+
+  <div class="connector"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node node-process col-subcon" style="animation-delay:0.22s; width:290px; border-style: dashed;">
+    <div class="n-icon">📊</div>
+    <div class="n-title">Subcon Reconciliation</div>
+    <div class="n-sub">Qty Sent = Qty Received + Scrap<br/>Scrap value → Vendor Debit Note</div>
+  </div>
+
+  <div class="connector"><div class="arrow-line" style="height:28px"></div><div class="arrow-head"></div></div>
+
+  <!-- ══ QC INBOUND ══ -->
+  <div class="section-pill" style="background:#4a90b8">03 · Quality Control — Inbound</div>
+  <div class="node node-process col-qc" style="animation-delay:0.25s">
+    <div class="n-icon">📥</div>
+    <div class="n-title">Receive at BIN Warehouse</div>
+    <div class="n-sub">Subcontracting Receipt · BIN WH<br/>Quantity verification</div>
+  </div>
+
+  <div class="connector"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node node-process col-qc" style="animation-delay:0.28s; width:290px;">
+    <div class="n-icon">🧪</div>
+    <div class="n-title">QC Inspection</div>
+    <div class="n-sub">Dent · Finish · Leakage · Cap · Rubber<br/>Logo · Quantity · Assembly</div>
+  </div>
+
+  <div class="connector"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <!-- QC DECISION + BRANCHES -->
+  <div class="node node-decision dec-qc" style="animation-delay:0.30s">
+    QC Result?
+  </div>
+
+  <!-- 3-way QC branch -->
+  <div style="width:760px; position:relative; margin-top:0;">
+    <!-- horizontal connector bar -->
+    <svg width="760" height="40" style="display:block; overflow:visible;">
+      <line x1="130" y1="0" x2="630" y2="0" stroke="#c4b89e" stroke-width="2"/>
+      <line x1="130" y1="0" x2="130" y2="40" stroke="#c4b89e" stroke-width="2"/>
+      <line x1="380" y1="0" x2="380" y2="40" stroke="#c4b89e" stroke-width="2"/>
+      <line x1="630" y1="0" x2="630" y2="40" stroke="#c4b89e" stroke-width="2"/>
+      <polygon points="124,33 130,42 136,33" fill="#c4b89e"/>
+      <polygon points="374,33 380,42 386,33" fill="#c4b89e"/>
+      <polygon points="624,33 630,42 636,33" fill="#c4b89e"/>
+      <text x="80" y="16" font-family="DM Mono" font-size="9" fill="#9a8e7e" letter-spacing="1">PASS</text>
+      <text x="346" y="16" font-family="DM Mono" font-size="9" fill="#9a8e7e" letter-spacing="1">REPAIR</text>
+      <text x="590" y="16" font-family="DM Mono" font-size="9" fill="#9a8e7e" letter-spacing="1">REJECT</text>
+    </svg>
+
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:0 0;">
+
+      <!-- PASS -->
+      <div style="display:flex; flex-direction:column; align-items:center; width:240px;">
+        <div class="node node-store store-main" style="animation-delay:0.35s">
+          <span class="ns-icon">🏢</span>
+          <span>Main Warehouse</span>
+        </div>
+      </div>
+
+      <!-- REPAIR -->
+      <div style="display:flex; flex-direction:column; align-items:center; width:240px;">
+        <div class="node node-store store-fix" style="animation-delay:0.38s">
+          <span class="ns-icon">🔧</span>
+          <span>Fix / Repair Warehouse</span>
+        </div>
+        <div class="connector"><div class="arrow-line" style="height:12px"></div><div class="arrow-head"></div></div>
+        <div class="node node-process col-custom" style="width:220px; animation-delay:0.40s;">
+          <div class="n-icon">🛠️</div>
+          <div class="n-title">Repair Job Card</div>
+          <div class="n-sub">Technician assigned<br/>Post-repair QC check</div>
+        </div>
+        <div class="connector"><div class="arrow-line" style="height:12px"></div><div class="arrow-head"></div></div>
+        <svg width="220" height="28" style="overflow:visible;">
+          <line x1="60" y1="0" x2="160" y2="0" stroke="#c4b89e" stroke-width="2"/>
+          <line x1="60" y1="0" x2="60" y2="28" stroke="#c4b89e" stroke-width="2"/>
+          <line x1="160" y1="0" x2="160" y2="28" stroke="#c4b89e" stroke-width="2"/>
+          <polygon points="54,21 60,30 66,21" fill="#c4b89e"/>
+          <polygon points="154,21 160,30 166,21" fill="#c4b89e"/>
+          <text x="18" y="12" font-family="DM Mono" font-size="8" fill="#9a8e7e">FIXED</text>
+          <text x="130" y="12" font-family="DM Mono" font-size="8" fill="#9a8e7e">FAIL</text>
+        </svg>
+        <div style="display:flex; gap:100px;">
+          <div class="node node-store store-main" style="width:80px; min-height:40px; font-size:9px; animation-delay:0.42s; padding:6px 8px; text-align:center; justify-content:center;">
+            <span>Main WH</span>
+          </div>
+          <div class="node node-store store-rej" style="width:80px; min-height:40px; font-size:9px; animation-delay:0.43s; padding:6px 8px; text-align:center; justify-content:center;">
+            <span>Rejected WH</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- REJECT -->
+      <div style="display:flex; flex-direction:column; align-items:center; width:240px;">
+        <div class="node node-store store-rej" style="animation-delay:0.36s">
+          <span class="ns-icon">🚫</span>
+          <span>Rejected Warehouse</span>
+        </div>
+        <div class="connector"><div class="arrow-line" style="height:12px"></div><div class="arrow-head"></div></div>
+        <div class="node node-process col-sales" style="width:220px; animation-delay:0.38s; min-height:52px;">
+          <div class="n-icon">📋</div>
+          <div class="n-title">Write-off / Vendor Debit</div>
+          <div class="n-sub">Stock write-off or raise<br/>debit note to vendor</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Convergence back to main flow from Main WH -->
+  <div style="width:760px; position:relative;">
+    <svg width="760" height="40" style="display:block; overflow:visible;">
+      <line x1="130" y1="0" x2="380" y2="40" stroke="#c4b89e" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon points="374,33 380,42 386,33" fill="#c4b89e"/>
+    </svg>
+  </div>
+
+  <!-- ══ CUSTOMIZATION ══ -->
+  <div class="section-pill" style="background:#b87a3e">04 · In-house Customization</div>
+
+  <!-- Decision: customization required? -->
+  <div class="node node-decision dec-qc" style="background:#b87a3e; animation-delay:0.45s;">
+    Customization Required?
+  </div>
+
+  <div style="width:560px; position:relative; margin-top:0;">
+    <svg width="560" height="40" style="display:block; overflow:visible;">
+      <line x1="140" y1="0" x2="420" y2="0" stroke="#c4b89e" stroke-width="2"/>
+      <line x1="140" y1="0" x2="140" y2="40" stroke="#c4b89e" stroke-width="2"/>
+      <line x1="420" y1="0" x2="420" y2="40" stroke="#c4b89e" stroke-width="2"/>
+      <polygon points="134,33 140,42 146,33" fill="#c4b89e"/>
+      <polygon points="414,33 420,42 426,33" fill="#c4b89e"/>
+      <text x="80" y="14" font-family="DM Mono" font-size="9" fill="#9a8e7e" letter-spacing="1">YES</text>
+      <text x="386" y="14" font-family="DM Mono" font-size="9" fill="#9a8e7e" letter-spacing="1">NO</text>
+    </svg>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <!-- YES branch -->
+      <div style="display:flex; flex-direction:column; align-items:center; width:260px;">
+        <div class="node node-process col-custom" style="width:240px; animation-delay:0.48s;">
+          <div class="n-icon">🎨</div>
+          <div class="n-title">Customization Job Card</div>
+          <div class="n-sub">Image Printing · Name Engraving<br/>Artwork upload · Machine assign</div>
+        </div>
+        <div class="connector"><div class="arrow-line" style="height:12px"></div><div class="arrow-head"></div></div>
+        <div class="node node-process col-custom" style="width:240px; animation-delay:0.50s; min-height:52px;">
+          <div class="n-icon">✅</div>
+          <div class="n-title">Customization QC Pass</div>
+          <div class="n-sub">Job Card closed · Dispatch unlocked</div>
+        </div>
+      </div>
+      <!-- NO branch: direct arrow down on the right side, joins bellow -->
+      <div style="display:flex; flex-direction:column; align-items:center; width:260px; padding-top:30px;">
+        <div style="font-family:'DM Mono'; font-size:10px; color:#9a8e7e; letter-spacing:0.08em;">Skip to Dispatch</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="width:560px;">
+    <svg width="560" height="32" style="display:block; overflow:visible;">
+      <line x1="140" y1="0" x2="280" y2="32" stroke="#c4b89e" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="420" y1="0" x2="280" y2="32" stroke="#c4b89e" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon points="274,25 280,34 286,25" fill="#c4b89e"/>
+    </svg>
+  </div>
+
+  <!-- ══ SALES ══ -->
+  <div class="section-pill" style="background:#c85a3e">05 · Sales &amp; Distribution</div>
+
+  <div class="node node-process col-sales" style="animation-delay:0.52s; width:280px;">
+    <div class="n-icon">📋</div>
+    <div class="n-title">Sales Order</div>
+    <div class="n-sub">Channel tagged · Price list applied<br/>Delivery date confirmed</div>
+  </div>
+
+  <div class="connector"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node node-process col-sales" style="animation-delay:0.54s; width:280px;">
+    <div class="n-icon">📦</div>
+    <div class="n-title">Pick List → Delivery Note</div>
+    <div class="n-sub">Warehouse picking · Stock deducted<br/>AWB number assigned</div>
+  </div>
+
+  <div class="connector"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <!-- 4 Sales Channels -->
+  <div style="font-family:'DM Mono'; font-size:9px; color:#9a8e7e; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:4px;">Multi-Channel Dispatch</div>
+  <div style="width:860px; position:relative; margin-top:0;">
+    <svg width="860" height="40" style="display:block; overflow:visible;">
+      <line x1="110" y1="0" x2="750" y2="0" stroke="#c4b89e" stroke-width="2"/>
+      <line x1="110" y1="0" x2="110" y2="40" stroke="#c4b89e" stroke-width="2"/>
+      <line x1="322" y1="0" x2="322" y2="40" stroke="#c4b89e" stroke-width="2"/>
+      <line x1="537" y1="0" x2="537" y2="40" stroke="#c4b89e" stroke-width="2"/>
+      <line x1="750" y1="0" x2="750" y2="40" stroke="#c4b89e" stroke-width="2"/>
+      <polygon points="104,33 110,42 116,33" fill="#c4b89e"/>
+      <polygon points="316,33 322,42 328,33" fill="#c4b89e"/>
+      <polygon points="531,33 537,42 543,33" fill="#c4b89e"/>
+      <polygon points="744,33 750,42 756,33" fill="#c4b89e"/>
+    </svg>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+
+      <div style="display:flex; flex-direction:column; align-items:center; width:200px;">
+        <div class="node node-process col-sales" style="width:190px; min-height:60px; animation-delay:0.56s; border-color:#f07a50; background:#fff5f2; color:#7a2010;">
+          <div class="n-icon">⚡</div>
+          <div class="n-title" style="font-size:13px;">Quick Commerce</div>
+          <div class="n-sub">Zepto · Blinkit</div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; align-items:center; width:200px;">
+        <div class="node node-process col-sales" style="width:190px; min-height:60px; animation-delay:0.58s; border-color:#3e90c8; background:#f0f7ff; color:#1e3d7a;">
+          <div class="n-icon">🛍️</div>
+          <div class="n-title" style="font-size:13px;">E-Commerce</div>
+          <div class="n-sub">Amazon · Flipkart · Meesho · Shopify</div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; align-items:center; width:200px;">
+        <div class="node node-process col-warehouse" style="width:190px; min-height:60px; animation-delay:0.60s;">
+          <div class="n-icon">🏢</div>
+          <div class="n-title" style="font-size:13px;">Offline B2B</div>
+          <div class="n-sub">Distributors · Bulk buyers</div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; align-items:center; width:200px;">
+        <div class="node node-process col-custom" style="width:190px; min-height:60px; animation-delay:0.62s;">
+          <div class="n-icon">🏪</div>
+          <div class="n-title" style="font-size:13px;">Own Retail Stores</div>
+          <div class="n-sub">POS / direct walk-in</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Converge to Invoice -->
+  <div style="width:860px;">
+    <svg width="860" height="36" style="display:block; overflow:visible;">
+      <line x1="110" y1="0" x2="430" y2="36" stroke="#c4b89e" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="322" y1="0" x2="430" y2="36" stroke="#c4b89e" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="537" y1="0" x2="430" y2="36" stroke="#c4b89e" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="750" y1="0" x2="430" y2="36" stroke="#c4b89e" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon points="424,29 430,38 436,29" fill="#c4b89e"/>
+    </svg>
+  </div>
+
+  <div class="node node-process col-sales" style="animation-delay:0.64s; width:280px;">
+    <div class="n-icon">🧾</div>
+    <div class="n-title">Sales Invoice</div>
+    <div class="n-sub">GST invoice · Revenue booked<br/>Channel-wise P&amp;L entry</div>
+  </div>
+
+  <div class="connector"><div class="arrow-line" style="height:16px"></div><div class="arrow-head"></div></div>
+
+  <div class="node node-process col-sales" style="animation-delay:0.66s; width:280px;">
+    <div class="n-icon">🚚</div>
+    <div class="n-title">Shipment &amp; Delivery</div>
+    <div class="n-sub">AWB tracked · Delivery confirmed<br/>Customer receives order</div>
+  </div>
+
+  <div class="connector"><div class="arrow-line" style="height:20px"></div><div class="arrow-head"></div></div>
+
+  <!-- ══ RETURNS ══ -->
+  <div class="section-pill" style="background:#9e4ab8">06 · Return Management</div>
+
+  <div class="node node-decision dec-return" style="animation-delay:0.68s;">
+    Customer Return?
+  </div>
+
+  <!-- Return YES branch -->
+  <div style="width:680px; position:relative; margin-top:0;">
+    <svg width="680" height="40" style="display:block; overflow:visible;">
+      <line x1="200" y1="0" x2="480" y2="0" stroke="#c4b89e" stroke-width="2"/>
+      <line x1="200" y1="0" x2="200" y2="40" stroke="#c4b89e" stroke-width="2"/>
+      <line x1="480" y1="0" x2="480" y2="40" stroke="#c4b89e" stroke-width="2"/>
+      <polygon points="194,33 200,42 206,33" fill="#c4b89e"/>
+      <polygon points="474,33 480,42 486,33" fill="#c4b89e"/>
+      <text x="130" y="14" font-family="DM Mono" font-size="9" fill="#9a8e7e">RETURN</text>
+      <text x="442" y="14" font-family="DM Mono" font-size="9" fill="#9a8e7e">NO RETURN</text>
+    </svg>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+
+      <!-- Return flow -->
+      <div style="display:flex; flex-direction:column; align-items:center; width:380px;">
+        <div class="node node-process col-return" style="width:280px; animation-delay:0.70s;">
+          <div class="n-icon">📬</div>
+          <div class="n-title">Sales Return + Credit Note</div>
+          <div class="n-sub">Return reason code logged<br/>Stock received at BIN WH</div>
+        </div>
+        <div class="connector"><div class="arrow-line" style="height:12px"></div><div class="arrow-head"></div></div>
+        <div class="node node-process col-qc" style="width:280px; animation-delay:0.72s;">
+          <div class="n-icon">🔍</div>
+          <div class="n-title">Return QC Inspection</div>
+          <div class="n-sub">Condition grade: A / B / C<br/>Routing decision made</div>
+        </div>
+        <div class="connector"><div class="arrow-line" style="height:12px"></div><div class="arrow-head"></div></div>
+        <div class="node node-decision dec-return" style="width:180px; height:70px; animation-delay:0.74s; font-size:10px;">Return Grade?</div>
+
+        <!-- 3-way return routing -->
+        <div style="width:380px; position:relative; margin-top:0;">
+          <svg width="380" height="36" style="display:block; overflow:visible;">
+            <line x1="64" y1="0" x2="316" y2="0" stroke="#c4b89e" stroke-width="2"/>
+            <line x1="64" y1="0" x2="64" y2="36" stroke="#c4b89e" stroke-width="2"/>
+            <line x1="190" y1="0" x2="190" y2="36" stroke="#c4b89e" stroke-width="2"/>
+            <line x1="316" y1="0" x2="316" y2="36" stroke="#c4b89e" stroke-width="2"/>
+            <polygon points="58,29 64,38 70,29" fill="#c4b89e"/>
+            <polygon points="184,29 190,38 196,29" fill="#c4b89e"/>
+            <polygon points="310,29 316,38 322,29" fill="#c4b89e"/>
+            <text x="20" y="13" font-family="DM Mono" font-size="8" fill="#9a8e7e">GOOD</text>
+            <text x="155" y="13" font-family="DM Mono" font-size="8" fill="#9a8e7e">FIX</text>
+            <text x="283" y="13" font-family="DM Mono" font-size="8" fill="#9a8e7e">REJECT</text>
+          </svg>
+          <div style="display:flex; justify-content:space-between;">
+            <div class="node node-store store-main" style="width:110px; min-height:44px; font-size:9.5px; animation-delay:0.76s; padding:7px 6px; text-align:center; justify-content:center; flex-direction:column; gap:3px;">
+              <span style="font-size:14px">🏢</span><span>Main WH</span>
+            </div>
+            <div class="node node-store store-fix" style="width:110px; min-height:44px; font-size:9.5px; animation-delay:0.77s; padding:7px 6px; text-align:center; justify-content:center; flex-direction:column; gap:3px;">
+              <span style="font-size:14px">🔧</span><span>Fix WH</span>
+            </div>
+            <div class="node node-store store-rej" style="width:110px; min-height:44px; font-size:9.5px; animation-delay:0.78s; padding:7px 6px; text-align:center; justify-content:center; flex-direction:column; gap:3px;">
+              <span style="font-size:14px">🚫</span><span>Rejected WH</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No return: straight to end -->
+      <div style="display:flex; flex-direction:column; align-items:center; width:180px; padding-top:30px;">
+        <div style="font-family:'DM Mono'; font-size:10px; color:#9a8e7e; letter-spacing:0.06em; text-align:center;">Transaction<br/>Complete</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- converge to end -->
+  <div style="width:680px;">
+    <svg width="680" height="36" style="display:block; overflow:visible;">
+      <line x1="190" y1="0" x2="340" y2="36" stroke="#c4b89e" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="480" y1="0" x2="340" y2="36" stroke="#c4b89e" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon points="334,29 340,38 346,29" fill="#c4b89e"/>
+    </svg>
+  </div>
+
+  <!-- ══ REPORTING ══ -->
+  <div class="section-pill" style="background:#4a6e8e">07 · Reporting &amp; Analytics</div>
+
+  <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-bottom:0;">
+    <div class="node node-process col-qc" style="width:180px; min-height:56px; animation-delay:0.80s; font-size:12px;">
+      <div class="n-icon" style="font-size:16px">📊</div>
+      <div class="n-title" style="font-size:12px;">Channel Sales Report</div>
+    </div>
+    <div class="node node-process col-subcon" style="width:180px; min-height:56px; animation-delay:0.82s;">
+      <div class="n-icon" style="font-size:16px">🔬</div>
+      <div class="n-title" style="font-size:12px;">QC Summary Report</div>
+    </div>
+    <div class="node node-process col-warehouse" style="width:180px; min-height:56px; animation-delay:0.84s;">
+      <div class="n-icon" style="font-size:16px">🏭</div>
+      <div class="n-title" style="font-size:12px;">Scrap Reconciliation</div>
+    </div>
+    <div class="node node-process col-return" style="width:180px; min-height:56px; animation-delay:0.86s;">
+      <div class="n-icon" style="font-size:16px">🔁</div>
+      <div class="n-title" style="font-size:12px;">Return Analysis</div>
+    </div>
+  </div>
+
+  <div class="connector" style="margin-top:16px;"><div class="arrow-line" style="height:20px"></div><div class="arrow-head"></div></div>
+
+  <!-- ══ END ══ -->
+  <div class="node node-end" style="animation-delay:0.88s">⬛ &nbsp; Cycle Complete</div>
+
+</div><!-- /flow -->
+</div><!-- /canvas -->
+
+<div class="page-footer">
+  <span>MERLIN — Business Workflow Flowchart</span>
+  <span>ERPNext v16 · Frappe Framework</span>
+</div>
+
+</body>
+</html>
